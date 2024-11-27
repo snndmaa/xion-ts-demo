@@ -1,6 +1,7 @@
-import { GasPrice, SigningStargateClient, coins } from '@cosmjs/stargate';
+import { GasPrice, SigningStargateClient, StargateClient, coins } from '@cosmjs/stargate';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import * as dotenv from 'dotenv';
+
 
 dotenv.config();
 
@@ -10,8 +11,8 @@ class Connection {
     private gasPrice: GasPrice;
     private key: string;
     private rpcEndpoint: string = DEFAULT_RPC_ENDPOINT;
-    public wallet: DirectSecp256k1Wallet;
-    public client: SigningStargateClient;
+    wallet: DirectSecp256k1Wallet;
+    client: SigningStargateClient | StargateClient;
 
     constructor(privateKey?: string, rpcEndpoint?: string) {
         this.gasPrice = GasPrice.fromString("0uxion");
@@ -21,15 +22,20 @@ class Connection {
         if (!this.key) {
             throw new Error("Private key is not set. Provide it in the constructor or set the PRIVATE_KEY environment variable.");
         }
-
     }
 
-    async connect() {
+    async initializeWallet() {
+        this.wallet = await DirectSecp256k1Wallet.fromKey(
+            Buffer.from(this.key, 'hex'),
+            'xion'
+        );
+    }
+
+
+    async connectSignerClient() {
         try {
-            this.wallet = await DirectSecp256k1Wallet.fromKey(
-                Buffer.from(this.key, 'hex'),
-                'xion'
-            );
+            await this.initializeWallet()
+
             this.client = await SigningStargateClient.connectWithSigner(
                 this.rpcEndpoint,
                 this.wallet,
@@ -38,9 +44,33 @@ class Connection {
 
             const accounts = await this.wallet.getAccounts();
             if (accounts.length === 0) throw new Error("No accounts found in the wallet.");
-            console.log("Connected to the network with address:", accounts[0].address);
+            
+            console.log(
+                "Connected to the network with address:", 
+                accounts[0].address
+            );
         } catch (error) {
-            console.error("Failed to connect:", error);
+            console.error(
+                "Failed to connect:", 
+                error
+            );
+        }
+    }
+
+    async connectClient() {
+        try{
+            this.client = await StargateClient.connect(
+                this.rpcEndpoint
+            );
+            console.log(
+                "Client Connected: ", 
+                this.client
+            );
+        } catch (error) {
+            console.error(
+                "Failed to connect:", 
+                error
+            );
         }
     }
 }
