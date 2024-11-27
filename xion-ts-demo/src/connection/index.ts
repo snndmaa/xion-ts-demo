@@ -21,6 +21,7 @@ class Connection {
         if (!this.key) {
             throw new Error("Private key is not set. Provide it in the constructor or set the PRIVATE_KEY environment variable.");
         }
+
     }
 
     async connect() {
@@ -40,7 +41,6 @@ class Connection {
             console.log("Connected to the network with address:", accounts[0].address);
         } catch (error) {
             console.error("Failed to connect:", error);
-            throw error;
         }
     }
 }
