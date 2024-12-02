@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const DEFAULT_RPC_ENDPOINT = 'https://rpc.xion-testnet-1.burnt.com:443';
+export const DEFAULT_RPC_ENDPOINT = 'https://rpc.xion-testnet-1.burnt.com:443';
 
 class Connection {
     private gasPrice: GasPrice;
