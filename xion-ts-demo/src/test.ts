@@ -1,23 +1,37 @@
 import { SigningCosmWasmClient, Secp256k1HdWallet } from "cosmwasm";
-import { DEFAULT_RPC_ENDPOINT } from "./connection";
+import Wallet from "./wallet";
+import { toBech32 } from '@cosmjs/encoding';
+import { rawSecp256k1PubkeyToRawAddress } from '@cosmjs/amino'
+import { coins } from '@cosmjs/stargate';
+;import { GasPrice } from "cosmwasm";
 
-// This is your rpc endpoint
-// const rpcEndpoint = "https://rpc.cliffnet.cosmwasm.com:443/";
-
-// Using a random generated mnemonic
-const mnemonic =
-  "rifle same bitter control garage duck grab spare mountain doctor rubber cook";
 
 async function main() {
-  // Create a wallet
-  const wallet = await Secp256k1HdWallet.fromMnemonic(mnemonic);
+    const walletInstance = new Wallet();
+    const wallet: Secp256k1HdWallet = await walletInstance.fromMnemonic()
+    
+    const gasPrice = GasPrice.fromString("0.001uxion");
+    const txOptions = { 
+        gasPrice
+    };
 
-  // Using
-  const client = await SigningCosmWasmClient.connectWithSigner(
-    DEFAULT_RPC_ENDPOINT,
-    wallet,
-  );
-  console.log(client);
+    const client = await SigningCosmWasmClient.connectWithSigner(
+        Wallet.rpcEndpoint,
+        wallet,
+        txOptions,
+    );
+
+    const [senderAccount] = await wallet.getAccounts()
+    const sender = toBech32("xion",rawSecp256k1PubkeyToRawAddress(senderAccount.pubkey))
+    const amount = coins('1', 'uxion');
+    const recipient = 'xion1j0se0le8vftzmvqmfddf9qcamz3445r98p52th060jdhjyrl3v2qn4scdq';
+
+    const result = await client.sendTokens(
+        sender,
+        recipient,
+        amount,
+        "auto",
+    )
+    console.log(result)
 }
-
 main();

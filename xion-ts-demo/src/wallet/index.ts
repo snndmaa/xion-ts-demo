@@ -1,10 +1,10 @@
 import { DEFAULT_RPC_ENDPOINT } from "../connection";
+import { SigningCosmWasmClient, Secp256k1HdWallet } from "cosmwasm";
 import * as bip39 from 'bip39';
 
 class Wallet {
-    private key: string;
-    mnemonic: string;
-    private rpcEndpoint: string = DEFAULT_RPC_ENDPOINT;
+    private mnemonic: string;
+    static rpcEndpoint: string = DEFAULT_RPC_ENDPOINT;
 
     constructor() {
         // Generate a new mnemonic (24 words by default)
@@ -16,22 +16,10 @@ class Wallet {
         return this.mnemonic;
     }
 
-    // Recover wallet from mnemonic
-    public static fromMnemonic(mnemonic: string): Wallet {
-        const wallet = new Wallet();
-        if (!bip39.validateMnemonic(mnemonic)) {
-            throw new Error('Invalid mnemonic phrase');
-        }
-        wallet.mnemonic = mnemonic;
-        // Generate seed from mnemonic
-        const seed = bip39.mnemonicToSeedSync(mnemonic);
-        // You can then use this seed to derive your private key
-        console.log(seed);
-        console.log(wallet);
-        return wallet;
+    public async fromMnemonic(): Promise<Secp256k1HdWallet> {
+        const wallet = await Secp256k1HdWallet.fromMnemonic(this.mnemonic, {prefix: 'xion'});
+        return wallet
     }
 }
 
-const wallet = new Wallet()
-wallet.getMnemonic()
-Wallet.fromMnemonic(wallet.mnemonic)
+export default Wallet;
